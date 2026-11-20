@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماڵپەڕی مامۆستایان - غایبات</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f6f9; color:#333; margin:0; }
+        .top-bar { background:#16324f; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; font-size:14px; color:#cfe4f0; gap:8px; flex-wrap:wrap; }
+        .top-bar button { background:none; border:1px solid #556; color:#ddd; padding:5px 12px; border-radius:6px; cursor:pointer; font-family:inherit; font-size:12px; margin-inline-start:6px; }
+        .top-bar button:hover { background:#2980b9; border-color:#2980b9; }
+        .wrap { max-width:720px; margin:0 auto; padding:14px; }
+        .box { background:#fff; border-radius:10px; box-shadow:0 3px 12px rgba(0,0,0,.08); padding:18px; margin-bottom:14px; }
+        h2,h3 { margin:0 0 12px; color:#2c3e50; }
+        label { display:block; font-weight:bold; margin:10px 0 4px; font-size:14px; }
+        input, select { width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-family:inherit; font-size:16px; background:#fff; }
+        button { font-family:inherit; cursor:pointer; border:none; border-radius:8px; }
+        .btn-main { width:100%; padding:14px; font-size:17px; background:#27ae60; color:#fff; margin-top:14px; }
+        .btn-main:disabled { background:#a9b6c0; cursor:not-allowed; }
+        .row { display:flex; gap:10px; }
+        .row > div { flex:1; }
+        .err { color:#c0392b; margin-top:10px; font-size:14px; }
+        .ok { color:#27ae60; font-weight:bold; }
+        .hint { font-size:13px; color:#777; }
+
+        .counter { display:flex; justify-content:space-between; align-items:center; margin:6px 0 10px; font-weight:bold; flex-wrap:wrap; gap:6px; }
+        .counter .abs { color:#c0392b; }
+        .counter .pres { color:#27ae60; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
+        .stu { padding:14px 8px; background:#eafaf1; border:2px solid #27ae60; color:#1e6b3e; font-size:15px; font-weight:bold; line-height:1.4; min-height:58px; user-select:none; -webkit-tap-highlight-color:transparent; }
+        .stu.absent { background:#fdecea; border-color:#c0392b; color:#a93226; text-decoration:line-through; }
+        .stu.absent::after { content:' ❌'; }
+        .toolbar { display:flex; gap:8px; margin-bottom:10px; }
+        .toolbar button { flex:1; padding:9px; background:#ecf0f1; color:#34495e; font-size:13px; }
+        #login-view { max-width:380px; margin:50px auto; }
+        .hidden { display:none !important; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div>👩‍🏫 <span id="teacher-name">ماڵپەڕی مامۆستایان</span></div>
+        <div id="top-actions" class="hidden">
+            <button id="btn-change-pass">گۆڕینی پاسۆرد</button>
+            <button id="btn-logout">چوونەدەرەوە</button>
+        </div>
+    </div>
+
+    <!-- چوونەژوورەوە -->
+    <div id="login-view" class="wrap">
+        <div class="box">
+            <h2>چوونەژوورەوەی مامۆستا</h2>
+            <form id="login-form">
+                <label>ناوی بەکارهێنەر</label>
+                <input type="text" id="login-user" dir="ltr" style="text-align:left;" autocomplete="username" autocapitalize="none" required>
+                <label>پاسۆرد</label>
+                <input type="password" id="login-pass" dir="ltr" style="text-align:left;" autocomplete="current-password" required>
+                <button type="submit" class="btn-main" id="btn-login" style="background:#2980b9;">چوونەژوورەوە</button>
+                <div id="login-error" class="err"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- پانێڵی مامۆستا -->
+    <div id="main-view" class="wrap hidden">
+        <div class="box">
+            <h3>وانەکەت دیاری بکە</h3>
+            <label>پۆل</label>
+            <select id="class-select"></select>
+            <div class="row">
+                <div>
+                    <label>ژمارەی وانە</label>
+                    <select id="lesson-select"></select>
+                </div>
+                <div>
+                    <label>بابەت (ئارەزوومەندانە)</label>
+                    <input type="text" id="subject-input" placeholder="وەک: بیرکاری">
+                </div>
+            </div>
+        </div>
+
+        <div class="box" id="students-box">
+            <h3>قوتابیان</h3>
+            <p class="hint" style="margin-top:-6px;">کلیک لەسەر ناوی ئەو قوتابییە بکە کە لە وانەکەدا نییە.</p>
+            <div class="counter">
+                <span class="pres">ئامادە: <span id="cnt-present">0</span></span>
+                <span class="abs">غایب: <span id="cnt-absent">0</span></span>
+                <span>کۆ: <span id="cnt-total">0</span></span>
+            </div>
+            <div class="toolbar">
+                <button type="button" id="btn-clear">هەموو ئامادەن</button>
+            </div>
+            <div class="grid" id="students-grid"></div>
+            <button class="btn-main" id="btn-save">ناردن و پاشکەوتکردن</button>
+            <div id="save-status" style="text-align:center; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./js/firebase-config.js";
+        import { login, verifySession, logout, changeOwnPassword } from "./js/auth-guard.js";
+        import { ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const LESSON_COUNT = 8;
+        const $ = id => document.getElementById(id);
+
+        let me = null;            // { uid (= username), name }
+        let allStudents = [];     // { cardId, name, class }
+        let absentSet = new Set();
+        let currentList = [];
+        let loadToken = 0;
+
+        const todayStr = () => new Date().toISOString().split('T')[0];
+        const classKey = c => String(c).replace(/[.#$\[\]\/]/g, '_');
+
+        // ===== چوونەژوورەوە =====
+        async function enter(staff) {
+            if (staff.role !== 'teacher') {
+                logout('teacher.html');
+                return;
+            }
+            me = { uid: staff.uid, name: staff.name };
+            $('teacher-name').textContent = staff.name;
+            $('login-view').classList.add('hidden');
+            $('main-view').classList.remove('hidden');
+            $('top-actions').classList.remove('hidden');
+            await loadStudents();
+        }
+
+        $('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            $('login-error').textContent = '';
+            $('btn-login').disabled = true;
+            try {
+                const staff = await login($('login-user').value, $('login-pass').value);
+                if (staff.role !== 'teacher') {
+                    localStorage.removeItem('sa_session');
+                    $('login-error').textContent = 'ئەم ماڵپەڕە تایبەتە بە مامۆستایان.';
+                    return;
+                }
+                await enter(staff);
+            } catch (err) {
+                console.error(err);
+                $('login-error').textContent = err.code === 'bad-credentials' ? err.message : 'هەڵە: ' + err.message;
+            } finally {
+                $('btn-login').disabled = false;
+            }
+        });
+
+        // ئەگەر پێشتر چووبێتە ژوورەوە
+        verifySession().then(s => { if (s && s.role === 'teacher') enter(s); }).catch(console.error);
+
+        $('btn-logout').addEventListener('click', () => logout('teacher.html'));
+
+        $('btn-change-pass').addEventListener('click', async () => {
+            const oldPass = prompt('پاسۆردی ئێستا:');
+            if (!oldPass) return;
+            const newPass = prompt('پاسۆردی نوێ (لانیکەم ٦ پیت):');
+            if (!newPass) return;
+            try {
+                await changeOwnPassword(me.uid, oldPass, newPass);
+                alert('پاسۆرد گۆڕدرا.');
+            } catch (err) {
+                alert(err.code === 'bad-credentials' ? 'پاسۆردی ئێستا هەڵەیە.' : 'هەڵە: ' + err.message);
+            }
+        });
+
+        // ===== قوتابیان و پۆلەکان =====
+        async function loadStudents() {
+            $('class-select').innerHTML = '<option>چاوەڕوانبە...</option>';
+            try {
+                const snap = await get(child(ref(db), 'students'));
+                const data = snap.exists() ? snap.val() : {};
+                allStudents = Object.keys(data).map(k => data[k]).filter(s => s && s.name && s.class)
+                    .map(s => ({ cardId: s.cardId, name: s.name, class: String(s.class).trim() }));
+            } catch (err) {
+                console.error(err);
+                $('class-select').innerHTML = '<option value="">هەڵە لە هێنانی قوتابیان</option>';
+                return;
+            }
+            const classes = Array.from(new Set(allStudents.map(s => s.class)))
+                .sort((a, b) => a.localeCompare(b, 'ku', { numeric: true }));
+            $('class-select').innerHTML = '<option value="">— پۆل هەڵبژێرە —</option>' +
+                classes.map(c => `<option value="${c.replace(/"/g, '&quot;')}">${c}</option>`).join('');
+            if (!$('lesson-select').options.length) {
+                $('lesson-select').innerHTML = Array.from({ length: LESSON_COUNT }, (_, i) => `<option value="${i + 1}">وانەی ${i + 1}</option>`).join('');
+            }
+            renderStudents();
+        }
+
+        async function onSelectionChanged() {
+            absentSet = new Set();
+            $('save-status').textContent = '';
+            const cls = $('class-select').value;
+            currentList = cls ? allStudents.filter(s => s.class === cls).sort((a, b) => a.name.localeCompare(b.name, 'ku')) : [];
+            renderStudents();
+            if (!cls) return;
+            // ئەگەر پێشتر ئەم وانەیە ناردرابێت، بیهێنەرەوە
+            const token = ++loadToken;
+            try {
+                const lesson = $('lesson-select').value;
+                const snap = await get(child(ref(db), `classroom_attendance/${todayStr()}/${classKey(cls)}/${lesson}_${me.uid}`));
+                if (token !== loadToken) return;
+                if (snap.exists()) {
+                    const rec = snap.val();
+                    (rec.absentStudents || []).forEach(s => absentSet.add(String(s.cardId)));
+                    if (rec.subject) $('subject-input').value = rec.subject;
+                    $('save-status').innerHTML = '<span class="hint">ئەم وانەیە پێشتر نێردراوە؛ دەتوانیت دەستکاری بکەیت و دووبارە بینێریت.</span>';
+                    renderStudents();
+                }
+            } catch (err) { console.error(err); }
+        }
+        $('class-select').addEventListener('change', onSelectionChanged);
+        $('lesson-select').addEventListener('change', onSelectionChanged);
+
+        function renderStudents() {
+            const grid = $('students-grid');
+            grid.innerHTML = '';
+            currentList.forEach(s => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'stu' + (absentSet.has(String(s.cardId)) ? ' absent' : '');
+                b.textContent = s.name;
+                b.addEventListener('click', () => {
+                    const k = String(s.cardId);
+                    if (absentSet.has(k)) absentSet.delete(k); else absentSet.add(k);
+                    b.classList.toggle('absent');
+                    $('save-status').textContent = '';
+                    updateCounters();
+                });
+                grid.appendChild(b);
+            });
+            updateCounters();
+        }
+        function updateCounters() {
+            const total = currentList.length;
+            const abs = currentList.filter(s => absentSet.has(String(s.cardId))).length;
+            $('cnt-total').textContent = total;
+            $('cnt-absent').textContent = abs;
+            $('cnt-present').textContent = total - abs;
+            $('btn-save').disabled = !total;
+        }
+        $('btn-clear').addEventListener('click', () => { absentSet = new Set(); $('save-status').textContent = ''; renderStudents(); });
+
+        // ===== ناردن =====
+        $('btn-save').addEventListener('click', async () => {
+            const cls = $('class-select').value;
+            if (!cls || !me) return;
+            const lesson = Number($('lesson-select').value);
+            const absent = currentList.filter(s => absentSet.has(String(s.cardId))).map(s => ({ cardId: String(s.cardId), name: s.name }));
+            const now = new Date();
+            const record = {
+                className: cls,
+                lesson,
+                subject: $('subject-input').value.trim(),
+                teacherUid: me.uid,
+                teacherName: me.name,
+                absentStudents: absent,
+                total: currentList.length,
+                time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: now.getTime()
+            };
+            $('btn-save').disabled = true;
+            $('save-status').textContent = 'چاوەڕوانبە...';
+            try {
+                await set(ref(db, `classroom_attendance/${todayStr()}/${classKey(cls)}/${lesson}_${me.uid}`), record);
+                $('save-status').innerHTML = `<span class="ok">✅ نێردرا — ${absent.length} غایب لە ${currentList.length} قوتابی</span>`;
+            } catch (err) {
+                console.error(err);
+                $('save-status').innerHTML = `<span class="err">❌ هەڵە: ${String(err.message).includes('PERMISSION_DENIED') ? 'ڕێگەپێدان نییە (Rules)' : err.message}</span>`;
+            } finally {
+                $('btn-save').disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

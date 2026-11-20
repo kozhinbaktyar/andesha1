@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بەڕێوەبردنی مامۆستایان</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f6f9; color:#333; margin:0; }
+        .top-bar { background:#16324f; padding:10px 24px; display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#cfe4f0; flex-wrap:wrap; gap:8px; }
+        .top-bar button { background:none; border:1px solid #445; color:#ccc; padding:5px 14px; border-radius:6px; cursor:pointer; font-family:inherit; font-size:13px; }
+        .top-bar button:hover { background:#2980b9; border-color:#2980b9; color:#fff; }
+        .top-bar .role-tag { background:#f1c40f; color:#0f2740; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:10px; margin-left:6px; }
+        .page-wrap { padding:20px; }
+        .container { max-width:900px; margin:0 auto 20px; background:#fff; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+        h2,h3 { color:#2c3e50; margin-top:0; }
+        input[type=text], input[type=email], input[type=password], input[type=date], select { width:100%; padding:10px; margin:6px 0; border:1px solid #ccc; border-radius:5px; box-sizing:border-box; font-family:inherit; }
+        button { padding:6px 12px; border:none; cursor:pointer; border-radius:4px; font-family:inherit; }
+        .btn-save { background:#27ae60; color:#fff; width:100%; padding:12px; font-size:16px; margin-top:6px; }
+        .btn-save:disabled { background:#a9b6c0; cursor:not-allowed; }
+        .btn-delete { background:#c0392b; color:#fff; font-size:12px; }
+        .btn-copy { background:#16a085; color:#fff; }
+        .btn-reset { background:#2980b9; color:#fff; font-size:12px; }
+        .hint { font-size:12px; color:#888; margin:0 0 6px; }
+        .link-box { display:flex; gap:8px; align-items:center; background:#eef6fb; border:1px solid #cfe4f0; padding:10px; border-radius:6px; flex-wrap:wrap; }
+        .link-box code { flex:1; min-width:200px; direction:ltr; text-align:left; word-break:break-all; font-size:13px; }
+        .teacher-row { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; margin-bottom:6px; background:#f8f9fa; border:1px solid #ddd; border-radius:6px; gap:8px; flex-wrap:wrap; }
+        .lesson-card { background:#f8f9fa; border:1px solid #ddd; padding:12px; border-radius:6px; margin-bottom:10px; }
+        .lesson-card h4 { margin:0 0 4px; color:#2c3e50; }
+        .abs-list { margin:6px 0 0; padding-right:20px; color:#c0392b; }
+        .ok { color:#27ae60; }
+        .err { color:#c0392b; }
+        .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .row input { flex:1; min-width:160px; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div>
+            <button id="btn-back">← گەڕانەوە بۆ پانێڵی بەڕێوەبەر</button>
+        </div>
+        <div>
+            <span class="role-tag">بەڕێوەبەر</span>
+            <span id="staff-name-label">چاوەڕوانبە...</span>
+        </div>
+    </div>
+
+    <div class="page-wrap">
+        <div class="container">
+            <h2>👩‍🏫 بەڕێوەبردنی مامۆستایان</h2>
+            <p class="hint">لینکی ماڵپەڕی مامۆستایان (بیدە بە مامۆستاکان):</p>
+            <div class="link-box">
+                <code id="teacher-link"></code>
+                <button class="btn-copy" id="btn-copy-link">کۆپیکردن</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h3>دروستکردنی ئەکاونتی مامۆستا</h3>
+            <form id="teacher-create-form" autocomplete="off">
+                <input type="text" id="new-teacher-name" placeholder="ناوی تەواوی مامۆستا" required>
+                <input type="text" id="new-teacher-user" placeholder="ناوی بەکارهێنەر (تەنها پیتی ئینگلیزی و ژمارە، وەک: sara1)" required dir="ltr" style="text-align:left;" pattern="[A-Za-z0-9_\-]{3,30}" title="٣ بۆ ٣٠ پیت: a-z، ژمارە، _ -" autocapitalize="none">
+                <input type="text" id="new-teacher-pass" placeholder="پاسۆرد (لانیکەم ٦ پیت)" required minlength="6" dir="ltr" style="text-align:left;">
+                <p class="hint">پاسۆردەکە لە کاتی دروستکردندا دەبینرێت تا بیدەیتە مامۆستا؛ دواتر ناتوانرێت ببینرێتەوە، بەڵام دەتوانیت لە لیستەکەوە پاسۆردێکی نوێی بۆ دابنێیت.</p>
+                <button type="submit" class="btn-save" id="btn-create">تۆمارکردنی مامۆستا</button>
+            </form>
+            <div id="create-result" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="container">
+            <h3>👤 دروستکردنی ستاف یان بەڕێوەبەر</h3>
+            <p class="hint">ئەمانە بە ناوی بەکارهێنەر و پاسۆرد دەچنە ژوورەوە لە <b>index.html</b>.</p>
+            <form id="staff-create-form" autocomplete="off">
+                <input type="text" id="new-staff-name" placeholder="ناوی تەواو" required>
+                <input type="text" id="new-staff-user" placeholder="ناوی بەکارهێنەر (a-z، ژمارە)" required dir="ltr" style="text-align:left;" pattern="[A-Za-z0-9_\-]{3,30}" autocapitalize="none">
+                <input type="text" id="new-staff-pass" placeholder="پاسۆرد (لانیکەم ٦ پیت)" required minlength="6" dir="ltr" style="text-align:left;">
+                <select id="new-staff-role">
+                    <option value="admin">بەڕێوەبەر (Admin)</option>
+                    <option value="staff">ستاف</option>
+                </select>
+                <button type="submit" class="btn-save" id="btn-create-staff">تۆمارکردن</button>
+            </form>
+            <div id="staff-create-result" style="margin-top:10px;"></div>
+            <h3 style="margin-top:20px;">لیستی ستاف و بەڕێوەبەران</h3>
+            <div id="staff-list-container">چاوەڕوانبە...</div>
+        </div>
+
+        <div class="container">
+            <h3>لیستی مامۆستایانی تۆمارکراو</h3>
+            <div id="teachers-list-container">چاوەڕوانبە...</div>
+        </div>
+
+        <div class="container">
+            <h3>📋 غایباتی ناو وانەکان (لەلایەن مامۆستایانەوە نێردراون)</h3>
+            <input type="date" id="report-date">
+            <div id="classroom-reports-list" style="margin-top:10px;">چاوەڕوانبە...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./js/firebase-config.js";
+        import { requireStaffAuth, createStaff, setPassword } from "./js/auth-guard.js";
+        import { ref, get, child, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // ئەگەر ناوی فایلی پانێڵی بەڕێوەبەر جیاوازە، لێرە بیگۆڕە
+        const ADMIN_PAGE = 'admin.html';
+        const TEACHER_PAGE = 'teacher.html';
+
+        const staff = await requireStaffAuth({ requireAdmin: true });
+        document.getElementById('staff-name-label').innerText = staff.name;
+
+        // دوگمەی گەڕانەوە
+        document.getElementById('btn-back').addEventListener('click', () => {
+            try {
+                if (document.referrer && new URL(document.referrer).origin === location.origin) {
+                    location.href = document.referrer; return;
+                }
+            } catch (e) {}
+            location.href = ADMIN_PAGE;
+        });
+
+        // لینکی ماڵپەڕی مامۆستا
+        const teacherUrl = new URL(TEACHER_PAGE, location.href).href;
+        document.getElementById('teacher-link').textContent = teacherUrl;
+        document.getElementById('btn-copy-link').addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(teacherUrl); alert('لینکەکە کۆپی کرا.'); }
+            catch (e) { prompt('لینکەکە کۆپی بکە:', teacherUrl); }
+        });
+
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+        const todayStr = () => new Date().toISOString().split('T')[0];
+        const roleName = r => r === 'admin' ? 'بەڕێوەبەر' : (r === 'teacher' ? 'مامۆستا' : 'ستاف');
+
+        function credentialsBox(label, username, password, extra = '') {
+            return `<div style="background:#eafaf1; border:1px solid #27ae60; padding:10px; border-radius:6px;">
+                ✅ ${label}. ئەم زانیارییانە بدە بەو کەسە:<br>
+                ناوی بەکارهێنەر: <b dir="ltr">${esc(username)}</b><br>
+                پاسۆرد: <b dir="ltr">${esc(password)}</b>${extra}</div>`;
+        }
+
+        // ===== فۆڕمی دروستکردن (هەم مامۆستا هەم ستاف) =====
+        async function handleCreate({ name, username, password, role, resultEl, btn, form, label, after }) {
+            btn.disabled = true; resultEl.textContent = 'چاوەڕوانبە...';
+            try {
+                const u = await createStaff({ username, name, password, role });
+                resultEl.innerHTML = credentialsBox(label, u, password, role !== 'teacher' ? `<br>ڕۆڵ: <b>${roleName(role)}</b>` : '');
+                form.reset();
+                after();
+            } catch (err) {
+                console.error(err);
+                resultEl.innerHTML = `<span class="err">❌ ${esc(err.message)}</span>`;
+            } finally { btn.disabled = false; }
+        }
+
+        document.getElementById('teacher-create-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleCreate({
+                name: document.getElementById('new-teacher-name').value.trim(),
+                username: document.getElementById('new-teacher-user').value,
+                password: document.getElementById('new-teacher-pass').value,
+                role: 'teacher',
+                resultEl: document.getElementById('create-result'),
+                btn: document.getElementById('btn-create'),
+                form: e.target, label: 'مامۆستا دروستکرا', after: loadLists
+            });
+        });
+        document.getElementById('staff-create-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleCreate({
+                name: document.getElementById('new-staff-name').value.trim(),
+                username: document.getElementById('new-staff-user').value,
+                password: document.getElementById('new-staff-pass').value,
+                role: document.getElementById('new-staff-role').value,
+                resultEl: document.getElementById('staff-create-result'),
+                btn: document.getElementById('btn-create-staff'),
+                form: e.target, label: 'تۆمارکرا', after: loadLists
+            });
+        });
+
+        // ===== لیستەکان =====
+        function rowHtml(uid, m) {
+            const me = uid === staff.uid;
+            return `<div class="teacher-row">
+                <span><b>${esc(m.name)}</b> — <span dir="ltr">${esc(m.username || uid)}</span>
+                    <span class="role-tag" style="background:${m.role === 'admin' ? '#f1c40f' : '#2ecc71'}; color:#0f2740; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:10px;">${roleName(m.role)}</span>${me ? ' (تۆ)' : ''}</span>
+                <span>
+                    <button class="btn-reset" data-reset="${esc(uid)}" data-name="${esc(m.name)}">پاسۆردی نوێ</button>
+                    ${me ? '' : `<button class="btn-delete" data-del="${esc(uid)}">سڕینەوە</button>`}
+                </span>
+            </div>`;
+        }
+        async function loadLists() {
+            const tBox = document.getElementById('teachers-list-container');
+            const sBox = document.getElementById('staff-list-container');
+            try {
+                const snap = await get(child(ref(db), 'staff'));
+                const data = snap.exists() ? snap.val() : {};
+                const ids = Object.keys(data).filter(k => data[k] && typeof data[k] === 'object');
+                const teachers = ids.filter(k => data[k].role === 'teacher');
+                const others = ids.filter(k => data[k].role !== 'teacher');
+                tBox.innerHTML = teachers.map(k => rowHtml(k, data[k])).join('') || '<p style="color:#777;">هیچ مامۆستایەک تا ئێستا دروست نەکراوە.</p>';
+                sBox.innerHTML = others.map(k => rowHtml(k, data[k])).join('') || '<p style="color:#777;">هیچ نییە.</p>';
+            } catch (err) {
+                console.error(err);
+                tBox.innerHTML = sBox.innerHTML = '<p class="err">هەڵە لە هێنانی لیست.</p>';
+            }
+        }
+        async function onListClick(e) {
+            const del = e.target.closest('button[data-del]');
+            const rst = e.target.closest('button[data-reset]');
+            if (del) {
+                if (!confirm('دڵنیای لە سڕینەوە؟ ئیتر ناتوانێت بچێتە ژوورەوە.')) return;
+                try { await remove(ref(db, `staff/${del.dataset.del}`)); loadLists(); }
+                catch (err) { alert('هەڵە لە سڕینەوە: ' + err.message); }
+            } else if (rst) {
+                const p = prompt(`پاسۆردی نوێ بۆ «${rst.dataset.name}» (لانیکەم ٦ پیت):`);
+                if (!p) return;
+                try { await setPassword(rst.dataset.reset, p); alert(`پاسۆرد گۆڕدرا.\nپاسۆردی نوێ: ${p}`); }
+                catch (err) { alert('هەڵە: ' + err.message); }
+            }
+        }
+        document.getElementById('teachers-list-container').addEventListener('click', onListClick);
+        document.getElementById('staff-list-container').addEventListener('click', onListClick);
+
+        // ===== ڕاپۆرتی غایباتی وانەکان =====
+        async function loadClassroomReports() {
+            const container = document.getElementById('classroom-reports-list');
+            const day = document.getElementById('report-date').value || todayStr();
+            container.textContent = 'چاوەڕوانبە...';
+            try {
+                const snap = await get(child(ref(db), `classroom_attendance/${day}`));
+                if (!snap.exists()) { container.innerHTML = '<p style="color:#777;">لەم ڕۆژەدا هیچ غایبێکی ناو وانە تۆمار نەکراوە.</p>'; return; }
+                const data = snap.val();
+                const items = [];
+                Object.keys(data).forEach(classKey => {
+                    const node = data[classKey] || {};
+                    Object.keys(node).forEach(k => { if (node[k] && typeof node[k] === 'object') items.push(node[k]); });
+                });
+                items.sort((a, b) => String(a.className).localeCompare(String(b.className), 'ku', { numeric: true }) || (a.lesson - b.lesson));
+                container.innerHTML = items.map(r => {
+                    const abs = Array.isArray(r.absentStudents) ? r.absentStudents : [];
+                    return `<div class="lesson-card">
+                        <h4>پۆل: ${esc(r.className)} — وانەی ${esc(r.lesson)}${r.subject ? ' (' + esc(r.subject) + ')' : ''}</h4>
+                        <div style="font-size:13px; color:#555;">مامۆستا: <b>${esc(r.teacherName)}</b> — ${esc(r.time || '')}</div>
+                        ${abs.length
+                            ? `<b>غایبەکان (${abs.length}):</b><ul class="abs-list">${abs.map(s => `<li style="background:none;box-shadow:none;padding:2px 0;display:list-item;">${esc(s.name)}</li>`).join('')}</ul>`
+                            : '<div class="ok" style="margin-top:6px;">هەموو قوتابیان ئامادەبوون.</div>'}
+                    </div>`;
+                }).join('') || '<p style="color:#777;">هیچ تۆمارێک نییە.</p>';
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="err">هەڵە لە هێنانی ڕاپۆرت: ' + esc(err.message) + '</p>';
+            }
+        }
+        document.getElementById('report-date').value = todayStr();
+        document.getElementById('report-date').addEventListener('change', loadClassroomReports);
+
+        loadLists();
+        loadClassroomReports();
+    </script>
+</body>
+</html>

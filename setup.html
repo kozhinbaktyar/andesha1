@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دروستکردنی یەکەم بەڕێوەبەر</title>
+<style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(160deg,#16324f,#2c3e50); margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .box { background:#fff; width:400px; max-width:100%; border-radius:14px; padding:30px 26px; box-shadow:0 15px 40px rgba(0,0,0,.3); }
+    h2 { margin:0 0 6px; color:#16324f; text-align:center; }
+    .sub { color:#888; font-size:13px; text-align:center; margin-bottom:20px; line-height:1.7; }
+    label { display:block; font-size:13px; font-weight:bold; color:#555; margin:10px 0 4px; }
+    input { width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:15px; font-family:inherit; }
+    button { width:100%; padding:13px; margin-top:16px; border:none; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; font-family:inherit; background:#2980b9; color:#fff; }
+    button:disabled { background:#a9b6c0; cursor:not-allowed; }
+    #msg { margin-top:12px; font-size:14px; min-height:20px; line-height:1.7; }
+    .err { color:#c0392b; } .ok { color:#27ae60; font-weight:bold; }
+</style>
+</head>
+<body>
+<div class="box">
+    <h2>🛠️ دروستکردنی یەکەم بەڕێوەبەر</h2>
+    <div class="sub">تەنها یەکجار بەکاردێت، کاتێک هیچ بەڕێوەبەرێک نییە. دوای دروستکردن دەتوانیت ئەم فایلە بسڕیتەوە.</div>
+    <form id="setup-form" autocomplete="off">
+        <label>ناوی تەواو</label>
+        <input type="text" id="s-name" required>
+        <label>ناوی بەکارهێنەر (a-z، ژمارە، _ یان -)</label>
+        <input type="text" id="s-user" dir="ltr" style="text-align:left;" pattern="[A-Za-z0-9_\-]{3,30}" autocapitalize="none" required>
+        <label>پاسۆرد (لانیکەم ٦ پیت)</label>
+        <input type="password" id="s-pass" dir="ltr" style="text-align:left;" minlength="6" required>
+        <button type="submit" id="s-btn">دروستکردن</button>
+    </form>
+    <div id="msg"></div>
+</div>
+
+<script type="module">
+    import { db } from "./js/firebase-config.js";
+    import { createStaff, login } from "./js/auth-guard.js";
+    import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const $ = id => document.getElementById(id);
+
+    $('setup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = $('s-name').value.trim();
+        const username = $('s-user').value.trim().toLowerCase();
+        const pass = $('s-pass').value;
+        const msg = $('msg');
+        $('s-btn').disabled = true; msg.className = ''; msg.textContent = 'چاوەڕوانبە...';
+        try {
+            // ئەگەر پێشتر بەڕێوەبەرێک هەبێت، ڕێگە نادەین
+            const snap = await get(ref(db, 'staff'));
+            const hasAdmin = snap.exists() && Object.values(snap.val()).some(s => s && s.role === 'admin');
+            if (hasAdmin) {
+                msg.className = 'err';
+                msg.textContent = '❌ بەڕێوەبەرێک پێشتر دروستکراوە. بچۆ index.html و داوا لە بەڕێوەبەر بکە ئەکاونتت بۆ دروست بکات.';
+                $('s-btn').disabled = false;
+                return;
+            }
+            await createStaff({ username, name, password: pass, role: 'admin' });
+            await login(username, pass);
+            msg.className = 'ok'; msg.textContent = '✅ بەڕێوەبەر دروستکرا. دەتبەم بۆ پەڕەی سەرەکی...';
+            setTimeout(() => location.href = 'home.html', 1000);
+        } catch (err) {
+            console.error(err);
+            msg.className = 'err'; msg.textContent = '❌ ' + err.message;
+            $('s-btn').disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
